@@ -81,3 +81,4 @@ fs.writeFileSync(path.join(wpDir, 'celestia-cyber.svg'), celestiaSvg.trim())
 fs.writeFileSync(path.join(wpDir, 'nothing-topography.svg'), nothingTopoSvg.trim())
 fs.writeFileSync(path.join(wpDir, 'deep-void.svg'), deepVoidSvg.trim())
 console.log('✓ Wallpapers generated successfully!')
+
