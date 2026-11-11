@@ -12,6 +12,8 @@ import {
   X,
   Mic,
   ChevronDown,
+  Calculator,
+  Check,
 } from 'lucide-react'
 import { useStore } from '../../store/useStore'
 import { SEARCH_ENGINES } from '../../utils/constants'
@@ -29,6 +31,19 @@ const ENGINE_ICONS: Record<string, React.ReactNode> = {
   BookOpen: <BookOpen className="w-4 h-4 text-gray-300" />,
 }
 
+function evaluateMath(expr: string): string | null {
+  const sanitized = expr.trim().replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '**')
+  if (!/^[0-9+\-*/().\s*%^]+$/.test(sanitized)) return null
+  if (!/[+\-*/%^]/.test(sanitized)) return null
+  try {
+    const res = Function(`'use strict'; return (${sanitized})`)()
+    if (typeof res === 'number' && !isNaN(res) && isFinite(res)) {
+      return String(Math.round(res * 100000) / 100000)
+    }
+  } catch {}
+  return null
+}
+
 export const SearchBar: React.FC = () => {
   const searchEngine = useStore((s) => s.searchEngine)
   const setSearchEngine = useStore((s) => s.setSearchEngine)
@@ -38,11 +53,13 @@ export const SearchBar: React.FC = () => {
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const [isListening, setIsListening] = useState(false)
+  const [copiedMath, setCopiedMath] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const currentEngine = SEARCH_ENGINES[searchEngine] || SEARCH_ENGINES.google
+  const mathResult = evaluateMath(query)
 
   // Close engine dropdown on click outside
   useEffect(() => {
@@ -69,14 +86,13 @@ export const SearchBar: React.FC = () => {
 
   // Fetch search suggestions
   useEffect(() => {
-    if (!query.trim() || query.length < 2) {
+    if (!query.trim() || query.length < 2 || mathResult !== null) {
       setSuggestions([])
       return
     }
 
     const timer = setTimeout(async () => {
       try {
-        // Try Google / DuckDuckGo suggestion API
         const suggestUrl = `https://duckduckgo.com/ac/?q=${encodeURIComponent(query)}&type=list`
         const res = await fetch(suggestUrl)
         if (res.ok) {
@@ -86,19 +102,25 @@ export const SearchBar: React.FC = () => {
           }
         }
       } catch {
-        // Silently fallback if CORS blocked
         setSuggestions([])
       }
     }, 200)
 
     return () => clearTimeout(timer)
-  }, [query])
+  }, [query, mathResult])
 
   const handleSearch = (searchQuery = query) => {
     const q = searchQuery.trim()
     if (!q) return
 
-    // If it looks like a direct URL, navigate directly
+    // If math result, copy it
+    if (mathResult !== null && searchQuery === query) {
+      navigator.clipboard.writeText(mathResult)
+      setCopiedMath(true)
+      setTimeout(() => setCopiedMath(false), 2000)
+      return
+    }
+
     if (/^(https?:\/\/|[a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/.*)?$/.test(q)) {
       const url = q.startsWith('http') ? q : `https://${q}`
       window.location.href = url
@@ -216,7 +238,7 @@ export const SearchBar: React.FC = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={`Search with ${currentEngine.name} or enter URL...`}
+          placeholder={`Search with ${currentEngine.name}, calculate 24*60, or enter URL...`}
           className="flex-1 bg-transparent border-none outline-none text-sm sm:text-base text-white placeholder-white/35 font-sans"
         />
 
@@ -260,8 +282,40 @@ export const SearchBar: React.FC = () => {
         </button>
       </div>
 
+      {/* Live Calculator Answer Pill */}
+      {mathResult !== null && (
+        <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-void-950/95 border border-caelestia-cyan/30 backdrop-blur-xl shadow-2xl p-3 z-40 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-caelestia-cyan/15 text-caelestia-cyan">
+              <Calculator className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-xs font-mono text-white/50">{query} =</div>
+              <div className="text-xl font-ndot text-white font-bold tracking-wider">{mathResult}</div>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(mathResult)
+              setCopiedMath(true)
+              setTimeout(() => setCopiedMath(false), 2000)
+            }}
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-caelestia-cyan hover:text-black text-xs font-mono text-white transition-all flex items-center gap-1.5"
+          >
+            {copiedMath ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <span>Copy Result</span>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Query Suggestions Dropdown */}
-      {suggestions.length > 0 && (
+      {suggestions.length > 0 && mathResult === null && (
         <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-void-950/95 border border-white/15 backdrop-blur-xl shadow-2xl overflow-hidden z-40">
           {suggestions.map((suggestion, index) => (
             <button
@@ -281,4 +335,3 @@ export const SearchBar: React.FC = () => {
     </div>
   )
 }
-

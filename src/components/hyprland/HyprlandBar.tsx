@@ -7,7 +7,8 @@ import {
   Battery,
   BatteryCharging,
   Wifi,
-  Sparkles,
+  Zap,
+  Cpu,
 } from 'lucide-react'
 import { useStore } from '../../store/useStore'
 import { WORKSPACE_PRESETS } from '../../utils/constants'
@@ -16,6 +17,7 @@ import { getDateTimeInfo } from '../../utils/datetime'
 interface BatteryStatus {
   level: number
   charging: boolean
+  isDesktop?: boolean
 }
 
 export const HyprlandBar: React.FC = () => {
@@ -26,31 +28,53 @@ export const HyprlandBar: React.FC = () => {
   const weatherData = useStore((s) => s.weatherData)
 
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [battery, setBattery] = useState<BatteryStatus | null>(null)
+  const [battery, setBattery] = useState<BatteryStatus>({
+    level: 100,
+    charging: true,
+    isDesktop: false,
+  })
+  const [hasBatteryApi, setHasBatteryApi] = useState(false)
+  const [powerPillMode, setPowerPillMode] = useState<'battery' | 'ram'>('battery')
+  const [ramUsage, setRamUsage] = useState<number | null>(null)
   const [timeInfo, setTimeInfo] = useState(getDateTimeInfo())
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeInfo(getDateTimeInfo())
+      // Check RAM if supported
+      if (typeof window !== 'undefined' && (performance as any)?.memory) {
+        const mem = (performance as any).memory
+        setRamUsage(Math.round(mem.usedJSHeapSize / (1024 * 1024)))
+      }
     }, 1000)
     return () => clearInterval(timer)
   }, [])
 
-  // Battery Status API
+  // Battery Status API (with Desktop fallback)
   useEffect(() => {
     if (typeof navigator !== 'undefined' && 'getBattery' in navigator) {
       // @ts-expect-error Battery API
-      navigator.getBattery().then((batt: any) => {
-        const updateBatt = () => {
-          setBattery({
-            level: Math.round(batt.level * 100),
-            charging: batt.charging,
-          })
-        }
-        updateBatt()
-        batt.addEventListener('levelchange', updateBatt)
-        batt.addEventListener('chargingchange', updateBatt)
-      })
+      navigator.getBattery()
+        .then((batt: any) => {
+          setHasBatteryApi(true)
+          const updateBatt = () => {
+            // Check if desktop without actual battery (often reports charging=true, level=1.0)
+            const isDesktop = batt.chargingTime === 0 && batt.dischargingTime === Infinity && batt.level === 1
+            setBattery({
+              level: Math.round(batt.level * 100),
+              charging: batt.charging,
+              isDesktop,
+            })
+          }
+          updateBatt()
+          batt.addEventListener('levelchange', updateBatt)
+          batt.addEventListener('chargingchange', updateBatt)
+        })
+        .catch(() => {
+          setHasBatteryApi(false)
+        })
+    } else {
+      setHasBatteryApi(false)
     }
   }, [])
 
@@ -60,6 +84,14 @@ export const HyprlandBar: React.FC = () => {
     } else {
       document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {})
     }
+  }
+
+  // Battery color status
+  const getBatteryColor = () => {
+    if (battery.charging) return 'text-caelestia-emerald'
+    if (battery.level > 50) return 'text-caelestia-emerald'
+    if (battery.level > 20) return 'text-amber-400'
+    return 'text-nothing-red animate-pulse'
   }
 
   return (
@@ -106,24 +138,42 @@ export const HyprlandBar: React.FC = () => {
         {weatherData && (
           <>
             <span className="text-white/30">/</span>
-            <span className="text-white/90 font-sans">{weatherData.temp}°{weatherData.condition}</span>
+            <span className="text-white/90 font-sans">{weatherData.temp}° {weatherData.city}</span>
           </>
         )}
       </div>
 
       {/* Right: System Status & Quick Actions */}
       <div className="flex items-center gap-2">
-        {/* Battery Pill (if supported) */}
-        {battery !== null && (
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-void-card border border-white/10 backdrop-blur-md text-xs font-mono text-white/80">
-            {battery.charging ? (
-              <BatteryCharging className="w-3.5 h-3.5 text-caelestia-emerald animate-pulse" />
+        {/* Power / Battery / RAM Pill */}
+        <button
+          onClick={() => setPowerPillMode((prev) => (prev === 'battery' ? 'ram' : 'battery'))}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-void-card border border-white/10 hover:border-white/20 backdrop-blur-md text-xs font-mono text-white/80 transition-all cursor-pointer"
+          title="Click to toggle Power / RAM info"
+        >
+          {powerPillMode === 'battery' ? (
+            hasBatteryApi && !battery.isDesktop ? (
+              <>
+                {battery.charging ? (
+                  <BatteryCharging className={`w-3.5 h-3.5 ${getBatteryColor()} animate-pulse`} />
+                ) : (
+                  <Battery className={`w-3.5 h-3.5 ${getBatteryColor()}`} />
+                )}
+                <span>{battery.level}%</span>
+              </>
             ) : (
-              <Battery className="w-3.5 h-3.5 text-white/60" />
-            )}
-            <span>{battery.level}%</span>
-          </div>
-        )}
+              <>
+                <Zap className="w-3.5 h-3.5 text-caelestia-emerald" />
+                <span>AC PWR</span>
+              </>
+            )
+          ) : (
+            <>
+              <Cpu className="w-3.5 h-3.5 text-caelestia-cyan" />
+              <span>{ramUsage ? `${ramUsage}MB` : 'SYS OK'}</span>
+            </>
+          )}
+        </button>
 
         {/* Wifi / Online badge */}
         <div className="hidden sm:flex items-center px-2.5 py-1.5 rounded-full bg-void-card border border-white/10 backdrop-blur-md text-white/70">
@@ -162,4 +212,3 @@ export const HyprlandBar: React.FC = () => {
     </header>
   )
 }
-

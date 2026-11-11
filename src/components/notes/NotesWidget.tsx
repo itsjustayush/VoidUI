@@ -1,16 +1,37 @@
 import React from 'react'
-import { FileText, Trash2 } from 'lucide-react'
+import { FileText, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import { useStore } from '../../store/useStore'
 
 export const NotesWidget: React.FC = () => {
   const notes = useStore((s) => s.notes)
   const setNotes = useStore((s) => s.setNotes)
+  const minimized = useStore((s) => !!s.minimizedWidgets['notes'])
+  const toggleMinimized = useStore((s) => s.toggleWidgetMinimized)
 
   const charCount = notes.length
   const wordCount = notes.trim() ? notes.trim().split(/\s+/).length : 0
 
+  if (minimized) {
+    return (
+      <div className="void-card p-3 select-none flex items-center justify-between transition-all duration-300">
+        <div className="flex items-center gap-2.5">
+          <FileText className="w-4 h-4 text-caelestia-cyan" />
+          <span className="font-ndot text-sm text-white font-medium uppercase tracking-wider">Scratchpad</span>
+          <span className="text-[10px] font-mono text-white/40">({wordCount} words)</span>
+        </div>
+        <button
+          onClick={() => toggleMinimized('notes')}
+          className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all"
+          title="Expand scratchpad"
+        >
+          <ChevronDown className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="void-card p-5 select-none flex flex-col justify-between h-full min-h-[220px]">
+    <div className="void-card p-5 select-none flex flex-col justify-between h-full min-h-[220px] transition-all duration-300">
       {/* Header */}
       <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-2.5 mb-2">
         <div className="flex items-center gap-1.5">
@@ -29,6 +50,13 @@ export const NotesWidget: React.FC = () => {
             title="Clear notes"
           >
             <Trash2 className="w-3 h-3" />
+          </button>
+          <button
+            onClick={() => toggleMinimized('notes')}
+            className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all"
+            title="Minimize scratchpad"
+          >
+            <ChevronUp className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -49,4 +77,3 @@ export const NotesWidget: React.FC = () => {
     </div>
   )
 }
-

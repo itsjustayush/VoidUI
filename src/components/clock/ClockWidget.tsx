@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 import { useStore } from '../../store/useStore'
 import { getDateTimeInfo, pad2 } from '../../utils/datetime'
 
@@ -7,6 +8,8 @@ export const ClockWidget: React.FC = () => {
   const clockFormat24 = useStore((s) => s.clockFormat24)
   const showSeconds = useStore((s) => s.showSeconds)
   const weatherData = useStore((s) => s.weatherData)
+  const minimized = useStore((s) => !!s.minimizedWidgets['clock'])
+  const toggleMinimized = useStore((s) => s.toggleWidgetMinimized)
 
   const [time, setTime] = useState(getDateTimeInfo(new Date(), clockFormat24))
 
@@ -17,15 +20,48 @@ export const ClockWidget: React.FC = () => {
     return () => clearInterval(timer)
   }, [clockFormat24])
 
+  // Minimized state (compact pill)
+  if (minimized) {
+    return (
+      <div className="void-card p-3 select-none flex items-center justify-between transition-all duration-300">
+        <div className="flex items-center gap-2.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-nothing-red animate-pulse-subtle" />
+          <span className="font-ndot text-xl text-white font-bold tracking-wider">
+            {pad2(time.hours)}:{pad2(time.minutes)}
+            {!clockFormat24 && <span className="text-xs text-nothing-red ml-1">{time.ampm}</span>}
+          </span>
+          <span className="text-xs font-mono text-white/50 border-l border-white/10 pl-2">
+            {time.weekDayShort} {time.dayPadded} {time.monthShort}
+          </span>
+        </div>
+        <button
+          onClick={() => toggleMinimized('clock')}
+          className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all"
+          title="Expand clock"
+        >
+          <ChevronDown className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    )
+  }
+
   // =========================================================================
   // 1. NOTHING OS DOT MATRIX CLOCK
   // =========================================================================
   if (clockStyle === 'dot-matrix') {
     return (
-      <div className="flex flex-col gap-3 select-none">
+      <div className="flex flex-col gap-3 select-none relative group h-full justify-between">
         {/* Time Card */}
-        <div className="void-card p-6 flex flex-col items-center justify-center relative overflow-hidden group">
-          {/* Subtle Glyph outline accent */}
+        <div className="void-card p-6 flex flex-col items-center justify-center relative overflow-hidden flex-1 min-h-[160px]">
+          {/* Minimize button */}
+          <button
+            onClick={() => toggleMinimized('clock')}
+            className="absolute top-3 right-3 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white/10 text-white/40 hover:text-white transition-all z-10"
+            title="Minimize clock"
+          >
+            <ChevronUp className="w-3.5 h-3.5" />
+          </button>
+
           <div className="absolute top-0 right-0 w-24 h-24 bg-nothing-red/5 rounded-full blur-2xl pointer-events-none group-hover:bg-nothing-red/10 transition-all duration-500" />
 
           {/* Time digits */}
@@ -46,7 +82,6 @@ export const ClockWidget: React.FC = () => {
             )}
           </div>
 
-          {/* Greeting subtitle */}
           <div className="text-xs font-mono text-white/40 tracking-wider uppercase mt-1">
             {time.greeting} • {time.monthFull} {time.year}
           </div>
@@ -70,18 +105,25 @@ export const ClockWidget: React.FC = () => {
   }
 
   // =========================================================================
-  // 2. YOUNG SERIF EDITORIAL CLOCK (Requested by user)
+  // 2. YOUNG SERIF EDITORIAL CLOCK
   // =========================================================================
   if (clockStyle === 'young-serif') {
     return (
-      <div className="void-card p-7 select-none relative overflow-hidden flex flex-col justify-between min-h-[220px]">
-        {/* Top meta */}
+      <div className="void-card p-6 select-none relative overflow-hidden flex flex-col justify-between h-full min-h-[220px] group">
         <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-3">
           <span className="uppercase tracking-widest">{time.weekDayFull}</span>
-          <span className="text-nothing-red font-semibold">{time.monthShort} {time.day}, {time.year}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-nothing-red font-semibold">{time.monthShort} {time.day}, {time.year}</span>
+            <button
+              onClick={() => toggleMinimized('clock')}
+              className="p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white/10 text-white/40 hover:text-white transition-all"
+              title="Minimize clock"
+            >
+              <ChevronUp className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        {/* Young Serif Hero Numerals */}
         <div className="my-3 flex items-baseline gap-2">
           <div className="font-young text-6xl sm:text-7xl lg:text-8xl tracking-tight text-white leading-none">
             {pad2(time.hours)}:{pad2(time.minutes)}
@@ -96,7 +138,6 @@ export const ClockWidget: React.FC = () => {
           )}
         </div>
 
-        {/* Editorial Footnote */}
         <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs text-white/40">
           <span className="font-serif italic text-white/60">"{time.greeting}, visionary."</span>
           <span className="font-mono text-[11px]">VOID / SERIF</span>
@@ -106,11 +147,19 @@ export const ClockWidget: React.FC = () => {
   }
 
   // =========================================================================
-  // 3. ONEUI DUAL / INTEGRATED CLOCK WIDGET
+  // 3. ONEUI DUAL CLOCK
   // =========================================================================
   if (clockStyle === 'oneui-dual') {
     return (
-      <div className="void-card p-6 select-none flex flex-col justify-between gap-4">
+      <div className="void-card p-6 select-none flex flex-col justify-between gap-4 h-full group relative">
+        <button
+          onClick={() => toggleMinimized('clock')}
+          className="absolute top-3 right-3 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white/10 text-white/40 hover:text-white transition-all z-10"
+          title="Minimize clock"
+        >
+          <ChevronUp className="w-3.5 h-3.5" />
+        </button>
+
         <div className="flex items-start justify-between">
           <div>
             <div className="text-xs font-mono text-white/50 uppercase tracking-wider">
@@ -126,7 +175,6 @@ export const ClockWidget: React.FC = () => {
             </div>
           </div>
 
-          {/* OneUI Squircle Badge */}
           <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/10 flex flex-col items-center justify-center">
             <span className="text-[10px] uppercase font-mono text-nothing-red font-bold">
               {time.weekDayShort}
@@ -137,7 +185,6 @@ export const ClockWidget: React.FC = () => {
           </div>
         </div>
 
-        {/* OneUI status row */}
         <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs text-white/60 font-sans">
           <span>{time.greeting}</span>
           {weatherData ? (
@@ -153,20 +200,26 @@ export const ClockWidget: React.FC = () => {
   }
 
   // =========================================================================
-  // 4. NOTHING ANALOGUE MINIMAL CLOCK
+  // 4. NOTHING ANALOGUE CLOCK
   // =========================================================================
   const secAngle = (time.seconds / 60) * 360
   const minAngle = ((time.minutes + time.seconds / 60) / 60) * 360
   const hourAngle = (((time.hours % 12) + time.minutes / 60) / 12) * 360
 
   return (
-    <div className="void-card p-6 select-none flex flex-col items-center justify-center gap-3">
-      {/* Clock Dial */}
-      <div className="relative w-44 h-44 sm:w-48 sm:h-48 rounded-full border border-white/15 bg-white/[0.02] flex items-center justify-center shadow-inner">
-        {/* 12 Hour tick dots */}
+    <div className="void-card p-5 select-none flex flex-col items-center justify-center gap-3 h-full group relative">
+      <button
+        onClick={() => toggleMinimized('clock')}
+        className="absolute top-3 right-3 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white/10 text-white/40 hover:text-white transition-all z-10"
+        title="Minimize clock"
+      >
+        <ChevronUp className="w-3.5 h-3.5" />
+      </button>
+
+      <div className="relative w-40 h-40 sm:w-44 sm:h-44 rounded-full border border-white/15 bg-white/[0.02] flex items-center justify-center shadow-inner">
         {Array.from({ length: 12 }).map((_, i) => {
           const angle = (i * 30 * Math.PI) / 180
-          const r = 80 // radius
+          const r = 72
           const x = Math.sin(angle) * r
           const y = -Math.cos(angle) * r
           const isQuarter = i % 3 === 0
@@ -184,9 +237,8 @@ export const ClockWidget: React.FC = () => {
           )
         })}
 
-        {/* Hour Hand */}
         <div
-          className="absolute w-1.5 h-14 bg-white rounded-full origin-bottom shadow-md"
+          className="absolute w-1.5 h-12 bg-white rounded-full origin-bottom shadow-md"
           style={{
             bottom: '50%',
             transform: `rotate(${hourAngle}deg)`,
@@ -194,9 +246,8 @@ export const ClockWidget: React.FC = () => {
           }}
         />
 
-        {/* Minute Hand */}
         <div
-          className="absolute w-1 h-20 bg-white/90 rounded-full origin-bottom shadow-md"
+          className="absolute w-1 h-16 bg-white/90 rounded-full origin-bottom shadow-md"
           style={{
             bottom: '50%',
             transform: `rotate(${minAngle}deg)`,
@@ -204,20 +255,17 @@ export const ClockWidget: React.FC = () => {
           }}
         />
 
-        {/* Nothing Red Second Hand */}
         <div
-          className="absolute w-0.5 h-22 bg-nothing-red rounded-full origin-bottom shadow-[0_0_8px_rgba(215,25,33,0.8)]"
+          className="absolute w-0.5 h-18 bg-nothing-red rounded-full origin-bottom shadow-[0_0_8px_rgba(215,25,33,0.8)]"
           style={{
             bottom: '50%',
             transform: `rotate(${secAngle}deg)`,
           }}
         />
 
-        {/* Center Pivot Point */}
         <div className="absolute w-3 h-3 rounded-full bg-nothing-red z-10 border-2 border-[#121215]" />
       </div>
 
-      {/* Digital Companion text */}
       <div className="flex items-center gap-2 font-mono text-xs text-white/60">
         <span className="font-ndot text-sm text-white/90 uppercase">{time.weekDayShort}</span>
         <span>•</span>
@@ -227,4 +275,3 @@ export const ClockWidget: React.FC = () => {
     </div>
   )
 }
-

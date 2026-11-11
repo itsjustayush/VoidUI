@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { CheckSquare, Plus, Trash2, Pin } from 'lucide-react'
+import { CheckSquare, Plus, Trash2, Pin, ChevronDown, ChevronUp } from 'lucide-react'
 import { useStore } from '../../store/useStore'
 
 export const TodoWidget: React.FC = () => {
@@ -8,6 +8,8 @@ export const TodoWidget: React.FC = () => {
   const toggleTodo = useStore((s) => s.toggleTodo)
   const deleteTodo = useStore((s) => s.deleteTodo)
   const pinTodo = useStore((s) => s.pinTodo)
+  const minimized = useStore((s) => !!s.minimizedWidgets['todo'])
+  const toggleMinimized = useStore((s) => s.toggleWidgetMinimized)
 
   const [inputVal, setInputVal] = useState('')
 
@@ -22,7 +24,6 @@ export const TodoWidget: React.FC = () => {
     setInputVal('')
   }
 
-  // Sort pinned first, then by completed
   const sortedTodos = [...todos].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1
     if (!a.pinned && b.pinned) return 1
@@ -31,8 +32,29 @@ export const TodoWidget: React.FC = () => {
     return b.createdAt - a.createdAt
   })
 
+  if (minimized) {
+    return (
+      <div className="void-card p-3 select-none flex items-center justify-between transition-all duration-300">
+        <div className="flex items-center gap-2.5">
+          <CheckSquare className="w-4 h-4 text-nothing-red" />
+          <span className="font-ndot text-sm text-white font-medium uppercase tracking-wider">Tasks</span>
+          <span className="text-[10px] font-mono text-white/50">
+            {completedCount}/{totalCount} ({progressPercent}%)
+          </span>
+        </div>
+        <button
+          onClick={() => toggleMinimized('todo')}
+          className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all"
+          title="Expand tasks"
+        >
+          <ChevronDown className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="void-card p-5 select-none flex flex-col justify-between h-full min-h-[220px]">
+    <div className="void-card p-5 select-none flex flex-col justify-between h-full min-h-[220px] transition-all duration-300">
       {/* Header */}
       <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-2.5 mb-2">
         <div className="flex items-center gap-1.5">
@@ -43,6 +65,13 @@ export const TodoWidget: React.FC = () => {
           <span className="text-[10px] text-white/40">
             {completedCount}/{totalCount} ({progressPercent}%)
           </span>
+          <button
+            onClick={() => toggleMinimized('todo')}
+            className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all"
+            title="Minimize tasks"
+          >
+            <ChevronUp className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
@@ -133,4 +162,3 @@ export const TodoWidget: React.FC = () => {
     </div>
   )
 }
-

@@ -16,14 +16,56 @@ import { SettingsModal } from './components/settings/SettingsModal'
 export const App: React.FC = () => {
   const theme = useStore((s) => s.theme)
   const widgets = useStore((s) => s.widgets)
+  const minimized = useStore((s) => s.minimizedWidgets)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 
+  // Dynamic self-aware layout calculations
+  const isClockMin = !!minimized['clock']
+  const isWeatherMin = !!minimized['weather']
+  const isMediaMin = !!minimized['media']
+  const isNotesMin = !!minimized['notes']
+  const isTodoMin = !!minimized['todo']
+
+  // Row 1 Column Span logic
+  const getClockSpan = () => {
+    if (isClockMin) return 'col-span-1'
+    if (isWeatherMin && isMediaMin) return 'col-span-1 md:col-span-2 lg:col-span-2'
+    if (isWeatherMin && !isMediaMin) return 'col-span-1 md:col-span-2 lg:col-span-2'
+    return 'col-span-1'
+  }
+
+  const getWeatherSpan = () => {
+    if (isWeatherMin) return 'col-span-1'
+    if (isClockMin && !isMediaMin) return 'col-span-1 md:col-span-2 lg:col-span-2'
+    if (isClockMin && isMediaMin) return 'col-span-1 md:col-span-2 lg:col-span-2'
+    return 'col-span-1'
+  }
+
+  const getMediaSpan = () => {
+    if (isMediaMin) return 'col-span-1'
+    if (isClockMin && isWeatherMin) return 'col-span-1 md:col-span-2 lg:col-span-3'
+    return 'col-span-1 md:col-span-2 lg:col-span-1'
+  }
+
+  // Row 4 Productivity Span logic
+  const getNotesSpan = () => {
+    if (isNotesMin && !isTodoMin) return 'col-span-1'
+    if (!isNotesMin && isTodoMin) return 'col-span-1 md:col-span-2'
+    return 'col-span-1'
+  }
+
+  const getTodoSpan = () => {
+    if (isTodoMin && !isNotesMin) return 'col-span-1'
+    if (!isTodoMin && isNotesMin) return 'col-span-1 md:col-span-2'
+    return 'col-span-1'
+  }
+
   return (
     <div className="min-h-screen flex flex-col justify-between relative overflow-x-hidden">
-      {/* Dynamic Background (Dot Matrix / Aurora Mesh / Starry / OLED) */}
+      {/* Dynamic Background */}
       <BackgroundCanvas />
 
       {/* Top Floating Hyprland Caelestia Bar */}
@@ -31,22 +73,22 @@ export const App: React.FC = () => {
 
       {/* Main Container */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 sm:py-8 flex flex-col gap-6 z-10">
-        {/* Row 1: Clocks, Weather, Ambient Media */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
+        {/* Row 1: Self-Aware Dynamic Hero Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start transition-all duration-300">
           {widgets.clock && (
-            <div className="h-full">
+            <div className={`transition-all duration-300 ${getClockSpan()}`}>
               <ClockWidget />
             </div>
           )}
 
           {widgets.weather && (
-            <div className="h-full">
+            <div className={`transition-all duration-300 ${getWeatherSpan()}`}>
               <WeatherWidget />
             </div>
           )}
 
           {widgets.media && (
-            <div className="h-full md:col-span-2 lg:col-span-1">
+            <div className={`transition-all duration-300 ${getMediaSpan()}`}>
               <MediaWidget />
             </div>
           )}
@@ -59,18 +101,26 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Row 3: Shortcuts Grid */}
+        {/* Row 3: Shortcuts Grid (with Collapse support) */}
         {widgets.shortcuts && (
-          <div className="w-full">
+          <div className="w-full transition-all duration-300">
             <ShortcutsWidget />
           </div>
         )}
 
-        {/* Row 4: Productivity Side-by-Side (Scratchpad Notes & Tasks) */}
+        {/* Row 4: Self-Aware Productivity Grid (Scratchpad Notes & Tasks) */}
         {(widgets.notes || widgets.todo) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-14">
-            {widgets.notes && <NotesWidget />}
-            {widgets.todo && <TodoWidget />}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-14 transition-all duration-300">
+            {widgets.notes && (
+              <div className={`transition-all duration-300 ${getNotesSpan()}`}>
+                <NotesWidget />
+              </div>
+            )}
+            {widgets.todo && (
+              <div className={`transition-all duration-300 ${getTodoSpan()}`}>
+                <TodoWidget />
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -88,4 +138,3 @@ export const App: React.FC = () => {
 }
 
 export default App
-

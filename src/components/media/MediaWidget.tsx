@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Play, Pause, SkipForward, SkipBack, Volume2, Disc } from 'lucide-react'
+import { Play, Pause, SkipForward, SkipBack, Volume2, Disc, ChevronDown, ChevronUp } from 'lucide-react'
+import { useStore } from '../../store/useStore'
 
 interface SoundTrack {
   id: string
@@ -17,6 +18,9 @@ const TRACKS: SoundTrack[] = [
 ]
 
 export const MediaWidget: React.FC = () => {
+  const minimized = useStore((s) => !!s.minimizedWidgets['media'])
+  const toggleMinimized = useStore((s) => s.toggleWidgetMinimized)
+
   const [currentTrackIdx, setCurrentTrackIdx] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(0.5)
@@ -41,7 +45,6 @@ export const MediaWidget: React.FC = () => {
     nodesRef.current.push(masterGain)
 
     if (type === 'rain' || type === 'focus') {
-      // White/pink noise buffer generator
       const bufferSize = ctx.sampleRate * 2
       const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
       const output = noiseBuffer.getChannelData(0)
@@ -61,7 +64,6 @@ export const MediaWidget: React.FC = () => {
       whiteNoise.buffer = noiseBuffer
       whiteNoise.loop = true
 
-      // Filter for soothing rain or focus tone
       const filter = ctx.createBiquadFilter()
       filter.type = 'lowpass'
       filter.frequency.setValueAtTime(type === 'rain' ? 850 : 1200, ctx.currentTime)
@@ -71,8 +73,7 @@ export const MediaWidget: React.FC = () => {
       whiteNoise.start()
       nodesRef.current.push(whiteNoise, filter)
     } else if (type === 'space') {
-      // Binaural cosmic chord drone
-      const freqs = [110, 164.81, 220, 277.18] // A minor 7 chord
+      const freqs = [110, 164.81, 220, 277.18]
       freqs.forEach((freq) => {
         const osc = ctx.createOscillator()
         osc.type = 'sine'
@@ -81,7 +82,6 @@ export const MediaWidget: React.FC = () => {
         const oscGain = ctx.createGain()
         oscGain.gain.setValueAtTime(0.08, ctx.currentTime)
 
-        // Subtle LFO modulation
         const lfo = ctx.createOscillator()
         lfo.frequency.setValueAtTime(0.15 + Math.random() * 0.1, ctx.currentTime)
         const lfoGain = ctx.createGain()
@@ -97,10 +97,9 @@ export const MediaWidget: React.FC = () => {
         nodesRef.current.push(osc, oscGain, lfo, lfoGain)
       })
     } else if (type === 'vinyl') {
-      // Warm vinyl ambient texture
       const osc = ctx.createOscillator()
       osc.type = 'triangle'
-      osc.frequency.setValueAtTime(65.41, ctx.currentTime) // Low C
+      osc.frequency.setValueAtTime(65.41, ctx.currentTime)
 
       const filter = ctx.createBiquadFilter()
       filter.type = 'lowpass'
@@ -153,38 +152,76 @@ export const MediaWidget: React.FC = () => {
     }
   }
 
-  // Update volume
   useEffect(() => {
     if (nodesRef.current[0]) {
       nodesRef.current[0].gain.setValueAtTime(volume * 0.4, audioCtxRef.current?.currentTime || 0)
     }
   }, [volume])
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => stopSound()
   }, [])
 
+  // Minimized Compact State (Self-Aware Layout Pill)
+  if (minimized) {
+    return (
+      <div className="void-card p-3 select-none flex items-center justify-between transition-all duration-300">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <button
+            onClick={togglePlay}
+            className="p-2 rounded-full bg-nothing-red text-white shadow-glow-red hover:scale-105 active:scale-95 transition-all shrink-0"
+            title={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+          </button>
+          <div className="min-w-0">
+            <div className="text-xs font-sans font-medium text-white truncate max-w-[140px]">
+              {currentTrack.title}
+            </div>
+            <div className="text-[10px] font-mono text-white/40 truncate">
+              {isPlaying ? 'Playing • ' + currentTrack.mood : 'Paused'}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => toggleMinimized('media')}
+          className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all shrink-0"
+          title="Expand media player"
+        >
+          <ChevronDown className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="void-card p-5 select-none flex flex-col justify-between group">
+    <div className="void-card p-5 select-none flex flex-col justify-between h-full transition-all duration-300 group">
       {/* Top Header */}
       <div className="flex items-center justify-between text-xs font-mono text-white/50 mb-3 border-b border-white/10 pb-2">
         <div className="flex items-center gap-1.5">
           <Disc className={`w-3.5 h-3.5 text-nothing-red ${isPlaying ? 'animate-spin' : ''}`} />
           <span className="font-ndot uppercase tracking-wider text-white/90">AMBIENT PLAYER</span>
         </div>
-        <span className="text-[10px] text-white/40">{currentTrack.mood}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-white/40">{currentTrack.mood}</span>
+          <button
+            onClick={() => toggleMinimized('media')}
+            className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all"
+            title="Minimize media player"
+          >
+            <ChevronUp className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Middle Track Info & Visualizer */}
       <div className="flex items-center gap-4 my-2">
-        {/* Album Art Squircle */}
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-void-850 to-void-700 border border-white/10 flex items-center justify-center relative overflow-hidden shadow-md shrink-0">
           <div className="absolute inset-0 bg-nothing-red/10 animate-pulse" />
           <Disc className={`w-7 h-7 text-white/80 transition-transform ${isPlaying ? 'rotate-45' : ''}`} />
         </div>
 
-        {/* Track Title & Artist */}
         <div className="flex-1 min-w-0">
           <div className="text-sm font-sans font-semibold text-white truncate">
             {currentTrack.title}
@@ -193,7 +230,6 @@ export const MediaWidget: React.FC = () => {
             {currentTrack.artist}
           </div>
 
-          {/* Equalizer Waveform bars */}
           <div className="flex items-end gap-1 h-3 mt-2">
             {[14, 28, 42, 60, 35, 75, 48, 20].map((h, i) => (
               <span
@@ -211,7 +247,6 @@ export const MediaWidget: React.FC = () => {
 
       {/* Controls & Volume */}
       <div className="flex items-center justify-between pt-3 border-t border-white/10 mt-2">
-        {/* Playback Controls */}
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
@@ -238,7 +273,6 @@ export const MediaWidget: React.FC = () => {
           </button>
         </div>
 
-        {/* Volume Slider */}
         <div className="flex items-center gap-2">
           <Volume2 className="w-3.5 h-3.5 text-white/40" />
           <input
@@ -256,4 +290,3 @@ export const MediaWidget: React.FC = () => {
     </div>
   )
 }
-
