@@ -80,9 +80,9 @@ export const HyprlandBar: React.FC = () => {
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {})
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => { })
     } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {})
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => { })
     }
   }
 
@@ -113,15 +113,13 @@ export const HyprlandBar: React.FC = () => {
                 key={ws.id}
                 onClick={() => setActiveWorkspace(ws.id)}
                 title={`${ws.name} (${ws.tag})`}
-                className={`group relative flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono transition-all duration-200 ${
-                  isActive
+                className={`group relative flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono transition-all duration-200 ${isActive
                     ? 'bg-white/15 text-white shadow-sm font-semibold'
                     : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-                }`}
+                  }`}
               >
-                <span className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  isActive ? 'bg-nothing-red scale-125' : 'bg-white/30 group-hover:bg-white/60'
-                }`} />
+                <span className={`w-1.5 h-1.5 rounded-full transition-all ${isActive ? 'bg-nothing-red scale-125' : 'bg-white/30 group-hover:bg-white/60'
+                  }`} />
                 <span>{ws.id}</span>
                 <span className="hidden md:inline text-[11px] font-sans opacity-75">{ws.name}</span>
               </button>
