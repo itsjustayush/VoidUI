@@ -296,3 +296,4 @@ export const NewsTicker: React.FC = () => {
     </div>
   )
 }
+

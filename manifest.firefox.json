@@ -23,8 +23,7 @@
     "https://api.bigdatacloud.net/*",
     "https://ipwho.is/*",
     "https://freeipapi.com/*",
-    "https://api.openweathermap.org/*",
-    "https://hacker-news.firebaseio.com/*"
+    "https://api.openweathermap.org/*"
   ],
   "browser_specific_settings": {
     "gecko": {
