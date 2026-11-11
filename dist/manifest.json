@@ -14,6 +14,18 @@
   "optional_permissions": [
     "bookmarks"
   ],
+  "host_permissions": [
+    "https://duckduckgo.com/*",
+    "https://suggestqueries.google.com/*",
+    "https://search.brave.com/*",
+    "https://api.open-meteo.com/*",
+    "https://geocoding-api.open-meteo.com/*",
+    "https://api.bigdatacloud.net/*",
+    "https://ipwho.is/*",
+    "https://freeipapi.com/*",
+    "https://api.openweathermap.org/*",
+    "https://hacker-news.firebaseio.com/*"
+  ],
   "icons": {
     "16": "favicon/icon-16.png",
     "32": "favicon/icon-32.png",

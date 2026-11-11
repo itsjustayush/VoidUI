@@ -20,6 +20,7 @@ const TRACKS: SoundTrack[] = [
 export const MediaWidget: React.FC = () => {
   const minimized = useStore((s) => !!s.minimizedWidgets['media'])
   const toggleMinimized = useStore((s) => s.toggleWidgetMinimized)
+  const setIsAmbientPlaying = useStore((s) => s.setIsAmbientPlaying)
 
   const [currentTrackIdx, setCurrentTrackIdx] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -130,9 +131,11 @@ export const MediaWidget: React.FC = () => {
     if (isPlaying) {
       stopSound()
       setIsPlaying(false)
+      setIsAmbientPlaying(false)
     } else {
       startSound(currentTrack.type)
       setIsPlaying(true)
+      setIsAmbientPlaying(true)
     }
   }
 
@@ -159,7 +162,10 @@ export const MediaWidget: React.FC = () => {
   }, [volume])
 
   useEffect(() => {
-    return () => stopSound()
+    return () => {
+      stopSound()
+      setIsAmbientPlaying(false)
+    }
   }, [])
 
   // Minimized Compact State (Self-Aware Layout Pill)

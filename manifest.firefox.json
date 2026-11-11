@@ -8,7 +8,23 @@
     "newtab": "index.html"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "topSites"
+  ],
+  "optional_permissions": [
+    "bookmarks"
+  ],
+  "host_permissions": [
+    "https://duckduckgo.com/*",
+    "https://suggestqueries.google.com/*",
+    "https://search.brave.com/*",
+    "https://api.open-meteo.com/*",
+    "https://geocoding-api.open-meteo.com/*",
+    "https://api.bigdatacloud.net/*",
+    "https://ipwho.is/*",
+    "https://freeipapi.com/*",
+    "https://api.openweathermap.org/*",
+    "https://hacker-news.firebaseio.com/*"
   ],
   "browser_specific_settings": {
     "gecko": {
@@ -23,4 +39,3 @@
     "128": "favicon/icon-128.png"
   }
 }
-

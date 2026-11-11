@@ -40,6 +40,7 @@ interface VoidUIState {
   // UI Modals
   isSettingsOpen: boolean
   isCommandPaletteOpen: boolean
+  isAmbientPlaying: boolean
 
   // Actions
   setTheme: (theme: ThemeMode) => void
@@ -70,6 +71,7 @@ interface VoidUIState {
 
   setSettingsOpen: (open: boolean) => void
   setCommandPaletteOpen: (open: boolean) => void
+  setIsAmbientPlaying: (val: boolean) => void
 
   exportConfig: () => string
   importConfig: (jsonStr: string) => boolean
@@ -89,6 +91,9 @@ const DEFAULT_WIDGETS: WidgetVisibility = {
   media: true,
   dock: true,
   systemCard: true,
+  timer: true,
+  news: true,
+  glyph: false,
 }
 
 const DEFAULT_WEATHER_CONFIG: WeatherConfig = {
@@ -140,6 +145,9 @@ export const useStore = create<VoidUIState>((set, get) => ({
 
   isSettingsOpen: false,
   isCommandPaletteOpen: false,
+  isAmbientPlaying: false,
+
+  setIsAmbientPlaying: (isAmbientPlaying) => set({ isAmbientPlaying }),
 
   setTheme: (theme) => {
     document.documentElement.setAttribute('data-theme', theme)

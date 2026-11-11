@@ -196,5 +196,5 @@ export const WEATHER_ICON_MAP: Record<string, { day: string; night: string }> = 
 }
 
 export const VOID_VERSION = '1.0.0'
-export const GITHUB_REPO_URL = 'https://github.com/VoidUI/void-ui'
+export const GITHUB_REPO_URL = 'https://github.com/itsjustayush/VoidUI'
 

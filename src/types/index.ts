@@ -81,6 +81,18 @@ export interface WidgetVisibility {
   media: boolean
   dock: boolean
   systemCard: boolean
+  timer: boolean
+  news: boolean
+  glyph: boolean
+}
+
+export interface NewsItem {
+  id: string
+  title: string
+  url: string
+  source: string
+  timeAgo: string
+  points?: number
 }
 
 export type BackgroundStyle =
