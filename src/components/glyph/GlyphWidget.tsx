@@ -87,9 +87,8 @@ export const GlyphWidget: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
             <Lightbulb
-              className={`w-4 h-4 transition-colors ${
-                torchActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-white/30'
-              }`}
+              className={`w-4 h-4 transition-colors ${torchActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-white/30'
+                }`}
             />
           </div>
           <div>
@@ -106,9 +105,8 @@ export const GlyphWidget: React.FC = () => {
         <div className="flex items-center gap-1">
           <button
             onClick={toggleTorch}
-            className={`p-1.5 rounded-full transition-all ${
-              torchActive ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'
-            }`}
+            className={`p-1.5 rounded-full transition-all ${torchActive ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
             title="Toggle Torch"
           >
             <Lightbulb className="w-3.5 h-3.5" />
@@ -139,9 +137,8 @@ export const GlyphWidget: React.FC = () => {
         <div className="flex items-center gap-1">
           <button
             onClick={toggleTorch}
-            className={`px-2 py-0.5 rounded-full text-[10px] font-mono transition-all ${
-              torchActive ? 'bg-white text-black font-semibold' : 'bg-white/10 text-white/60 hover:text-white'
-            }`}
+            className={`px-2 py-0.5 rounded-full text-[10px] font-mono transition-all ${torchActive ? 'bg-white text-black font-semibold' : 'bg-white/10 text-white/60 hover:text-white'
+              }`}
             title="Toggle Torch"
           >
             TORCH
@@ -163,27 +160,24 @@ export const GlyphWidget: React.FC = () => {
             setMode('torch')
             setTorchActive(true)
           }}
-          className={`py-1 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-            mode === 'torch' ? 'bg-white text-black font-medium' : 'text-white/50 hover:text-white'
-          }`}
+          className={`py-1 rounded-lg transition-all flex items-center justify-center gap-1.5 ${mode === 'torch' ? 'bg-white text-black font-medium' : 'text-white/50 hover:text-white'
+            }`}
         >
           <Lightbulb className="w-3 h-3" />
           <span>Torch</span>
         </button>
         <button
           onClick={() => setMode('pulse')}
-          className={`py-1 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-            mode === 'pulse' ? 'bg-nothing-red text-white font-medium' : 'text-white/50 hover:text-white'
-          }`}
+          className={`py-1 rounded-lg transition-all flex items-center justify-center gap-1.5 ${mode === 'pulse' ? 'bg-nothing-red text-white font-medium' : 'text-white/50 hover:text-white'
+            }`}
         >
           <Activity className="w-3 h-3" />
           <span>Pulse</span>
         </button>
         <button
           onClick={() => setMode('audioSync')}
-          className={`py-1 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-            mode === 'audioSync' ? 'bg-caelestia-cyan/30 text-caelestia-cyan font-medium border border-caelestia-cyan/40' : 'text-white/50 hover:text-white'
-          }`}
+          className={`py-1 rounded-lg transition-all flex items-center justify-center gap-1.5 ${mode === 'audioSync' ? 'bg-caelestia-cyan/30 text-caelestia-cyan font-medium border border-caelestia-cyan/40' : 'text-white/50 hover:text-white'
+            }`}
         >
           <Volume2 className="w-3 h-3" />
           <span>Audio</span>
