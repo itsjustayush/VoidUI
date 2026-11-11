@@ -35,6 +35,7 @@ interface VoidUIState {
 
   // Widgets
   widgets: WidgetVisibility
+  minimizedWidgets: Record<string, boolean>
 
   // UI Modals
   isSettingsOpen: boolean
@@ -65,6 +66,7 @@ interface VoidUIState {
   setWeatherConfig: (cfg: Partial<WeatherConfig>) => void
   setWeatherData: (data: WeatherData | null) => void
   toggleWidget: (widgetKey: keyof WidgetVisibility) => void
+  toggleWidgetMinimized: (key: string) => void
 
   setSettingsOpen: (open: boolean) => void
   setCommandPaletteOpen: (open: boolean) => void
@@ -134,6 +136,7 @@ export const useStore = create<VoidUIState>((set, get) => ({
   weatherData: initialState.weatherData || null,
 
   widgets: { ...DEFAULT_WIDGETS, ...initialState.widgets },
+  minimizedWidgets: initialState.minimizedWidgets || {},
 
   isSettingsOpen: false,
   isCommandPaletteOpen: false,
@@ -268,6 +271,16 @@ export const useStore = create<VoidUIState>((set, get) => ({
     saveState(get())
   },
 
+  toggleWidgetMinimized: (key) => {
+    set((state) => ({
+      minimizedWidgets: {
+        ...state.minimizedWidgets,
+        [key]: !state.minimizedWidgets[key],
+      },
+    }))
+    saveState(get())
+  },
+
   setSettingsOpen: (isSettingsOpen) => set({ isSettingsOpen }),
   setCommandPaletteOpen: (isCommandPaletteOpen) => set({ isCommandPaletteOpen }),
 
@@ -286,6 +299,7 @@ export const useStore = create<VoidUIState>((set, get) => ({
       notes: state.notes,
       weatherConfig: state.weatherConfig,
       widgets: state.widgets,
+      minimizedWidgets: state.minimizedWidgets,
       version: '1.0.0',
       exportedAt: new Date().toISOString(),
     }
@@ -308,6 +322,7 @@ export const useStore = create<VoidUIState>((set, get) => ({
         notes: data.notes || '',
         weatherConfig: { ...DEFAULT_WEATHER_CONFIG, ...data.weatherConfig },
         widgets: { ...DEFAULT_WIDGETS, ...data.widgets },
+        minimizedWidgets: data.minimizedWidgets || {},
       })
       document.documentElement.setAttribute('data-theme', data.theme || 'nothing')
       saveState(get())
@@ -335,6 +350,7 @@ export const useStore = create<VoidUIState>((set, get) => ({
       notes: '## VoidUI Scratchpad\n- Press `Ctrl + K` anytime to open launcher',
       weatherConfig: DEFAULT_WEATHER_CONFIG,
       widgets: DEFAULT_WIDGETS,
+      minimizedWidgets: {},
     })
     document.documentElement.setAttribute('data-theme', 'nothing')
   },
@@ -356,6 +372,7 @@ function saveState(state: VoidUIState) {
       notes: state.notes,
       weatherConfig: state.weatherConfig,
       widgets: state.widgets,
+      minimizedWidgets: state.minimizedWidgets,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
     // Also sync to chrome.storage.local if available

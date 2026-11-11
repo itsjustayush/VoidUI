@@ -38,18 +38,29 @@ export interface TodoItem {
   createdAt: number
 }
 
+export interface HourlyForecast {
+  time: string
+  temp: number
+  iconKey: string
+}
+
 export interface WeatherData {
   temp: number
+  feelsLike: number
   tempMin: number
   tempMax: number
   condition: string
   city: string
+  district?: string
   country: string
   humidity: number
   windSpeed: number
+  uvIndex?: number
+  precipitationProb?: number
   iconKey: string
   isDay: boolean
   updatedAt: number
+  hourly?: HourlyForecast[]
 }
 
 export interface WeatherConfig {
@@ -86,4 +97,3 @@ export interface AmbientTrack {
   type: 'rain' | 'space' | 'lofi' | 'city' | 'stream'
   url?: string
 }
-

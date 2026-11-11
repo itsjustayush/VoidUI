@@ -8,11 +8,11 @@
     "newtab": "index.html"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "topSites"
   ],
   "optional_permissions": [
-    "bookmarks",
-    "topSites"
+    "bookmarks"
   ],
   "icons": {
     "16": "favicon/icon-16.png",
@@ -25,4 +25,3 @@
     "default_title": "VoidUI Startpage"
   }
 }
-
